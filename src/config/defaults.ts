@@ -12,8 +12,6 @@ export const HETZNER_TIERS = {
   CPX41: { vcpu: 8, ram: 16384, monthly: 30.99 }
 } as const;
 
-export type HetznerTier = keyof typeof HETZNER_TIERS;
-
 export const DEFAULT_THRESHOLDS = {
   /** Default (no tier specified) */
   default: {

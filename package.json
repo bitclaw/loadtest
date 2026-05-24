@@ -31,9 +31,8 @@
   "author": "bitclaw",
   "license": "MIT",
   "dependencies": {
-    "@bitclaw/sqlite": "file:../sqlite",
-    "commander": "^12.1.0",
-    "zod": "^3.24.1"
+    "@bitclaw/sqlite": "github:bitclaw/sqlite",
+    "commander": "^12.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
