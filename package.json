@@ -1,6 +1,6 @@
 {
   "name": "@bitclaw/loadtest",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "description": "Load testing framework for SQLite-backed web applications",
   "files": ["dist", "LICENSE", "README.md"],
   "type": "module",
@@ -21,7 +21,7 @@
     "lint:fix": "biome check --write",
     "format": "biome format --write",
     "knip": "knip",
-    "prepublishOnly": "npm run build && npm run test",
+    "prepublishOnly": "npm run build && chmod +x dist/cli.js && npm run test",
     "publish:dev": "npm run build && npm publish --tag dev --access public",
     "publish:patch": "npm whoami && npm version patch && git push --follow-tags && npm publish --access public",
     "publish:minor": "npm whoami && npm version minor && git push --follow-tags && npm publish --access public",
@@ -31,7 +31,7 @@
   "author": "bitclaw",
   "license": "MIT",
   "dependencies": {
-    "@bitclaw/sqlite": "github:bitclaw/sqlite",
+    "@bitclaw/sqlite": "^1.1.0",
     "commander": "^12.1.0"
   },
   "devDependencies": {
