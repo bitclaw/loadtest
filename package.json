@@ -1,13 +1,20 @@
 {
   "name": "@bitclaw/loadtest",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Load testing framework for SQLite-backed web applications",
-  "files": ["dist", "LICENSE", "README.md"],
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "bin": {
     "loadtest": "./dist/cli.js"
@@ -27,7 +34,13 @@
     "publish:minor": "npm whoami && npm version minor && git push --follow-tags && npm publish --access public",
     "publish:major": "npm whoami && npm version major && git push --follow-tags && npm publish --access public"
   },
-  "keywords": ["loadtest", "benchmark", "sqlite", "bun", "k6"],
+  "keywords": [
+    "loadtest",
+    "benchmark",
+    "sqlite",
+    "bun",
+    "k6"
+  ],
   "author": "bitclaw",
   "license": "MIT",
   "dependencies": {
