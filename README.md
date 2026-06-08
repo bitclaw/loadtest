@@ -32,7 +32,7 @@ loadtest report [options]  # Generate report from results
 | `--production` | `false` | Test against production URL |
 | `--public-only` | `false` | Skip authenticated endpoints |
 | `--json` | `false` | Output results as JSON |
-| `--tier <tier>` | — | Hetzner tier for threshold overrides |
+| `--tier <tier>` | - | Hetzner tier for threshold overrides |
 
 ## Per-App Configuration
 
@@ -96,9 +96,9 @@ Uses [k6](https://k6.io/) for production-grade load testing with detailed metric
 
 Tests can define pass/fail thresholds:
 
-- **p95MaxMs** — Maximum acceptable P95 latency
-- **minSuccessRate** — Minimum success rate (0-100%)
-- **minThroughput** — Minimum req/s at lowest concurrency
+- **p95MaxMs** - Maximum acceptable P95 latency
+- **minSuccessRate** - Minimum success rate (0-100%)
+- **minThroughput** - Minimum req/s at lowest concurrency
 
 Hetzner tier overrides let you set different thresholds per server type.
 

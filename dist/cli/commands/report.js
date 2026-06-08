@@ -1,5 +1,5 @@
 /**
- * CLI `report` command — display or re-format previous results.
+ * CLI `report` command - display or re-format previous results.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';

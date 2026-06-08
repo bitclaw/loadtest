@@ -1,5 +1,5 @@
 /**
- * @bitclaw/loadtest — Load testing infrastructure.
+ * @bitclaw/loadtest - Load testing infrastructure.
  *
  * Public API for programmatic usage from app-specific test files
  * and the CLI.

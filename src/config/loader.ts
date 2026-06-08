@@ -1,10 +1,10 @@
 /**
- * Config loader — resolves per-app loadtest.config.ts files.
+ * Config loader - resolves per-app loadtest.config.ts files.
  *
  * Resolution order:
  *   1. Explicit `configDir` option (if provided)
- *   2. `process.cwd()` — standalone repo pattern
- *   3. `{REPO_ROOT}/apps/{appName}/` — monorepo pattern (legacy)
+ *   2. `process.cwd()` - standalone repo pattern
+ *   3. `{REPO_ROOT}/apps/{appName}/` - monorepo pattern (legacy)
  *
  * If a config is found at an earlier path but its `appName` doesn't match,
  * it is skipped and the next path is tried (mitigation against loading
@@ -58,7 +58,7 @@ export async function loadConfig(
       const config: AppLoadTestConfig = mod.default ?? mod.config;
 
       if (!config) {
-        console.warn(`Warning: No export found in ${configPath} — skipping`);
+        console.warn(`Warning: No export found in ${configPath} - skipping`);
         continue;
       }
 

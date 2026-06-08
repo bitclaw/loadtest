@@ -1,5 +1,5 @@
 /**
- * CLI `run` command — executes load tests against an app.
+ * CLI `run` command - executes load tests against an app.
  */
 import { listConfiguredApps, loadConfig } from '../../config/loader';
 import { checkThresholds, formatJson, formatReport } from '../../reports/formatter';

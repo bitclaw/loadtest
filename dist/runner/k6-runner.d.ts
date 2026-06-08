@@ -1,5 +1,5 @@
 /**
- * k6 runner — spawns k6 as a subprocess.
+ * k6 runner - spawns k6 as a subprocess.
  *
  * k6 scripts live in packages/loadtest/k6/{appName}.js and are
  * hand-written JavaScript (k6 doesn't support TypeScript natively).

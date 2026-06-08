@@ -59,7 +59,7 @@ export async function runAppLoadTest(
     allScenarios.push(...publicResults.scenarios);
   }
 
-  // 2. Direct origin pass — run public endpoints against directUrl and interleave
+  // 2. Direct origin pass - run public endpoints against directUrl and interleave
   if (directUrl && config.publicEndpoints.length > 0) {
     await verifyApp(directUrl, config);
 
@@ -105,7 +105,7 @@ export async function runAppLoadTest(
 
     if (!email || !password) {
       console.warn(
-        `Skipping ${config.authenticatedEndpoints.length} authenticated endpoint(s) — no credentials provided. ` +
+        `Skipping ${config.authenticatedEndpoints.length} authenticated endpoint(s) - no credentials provided. ` +
           `Set ${config.auth.emailEnvVar} and ${config.auth.passwordEnvVar} to include them.`
       );
     } else {
@@ -143,7 +143,7 @@ export async function runAppLoadTest(
     !config.auth
   ) {
     console.warn(
-      `Skipping ${config.authenticatedEndpoints.length} authenticated endpoint(s) — no auth config provided`
+      `Skipping ${config.authenticatedEndpoints.length} authenticated endpoint(s) - no auth config provided`
     );
   }
 

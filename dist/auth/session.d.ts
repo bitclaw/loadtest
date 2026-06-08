@@ -1,5 +1,5 @@
 /**
- * Load test authentication — obtains session cookies from the
+ * Load test authentication - obtains session cookies from the
  * dedicated /api/loadtest/auth endpoint.
  */
 import type { AuthConfig, SessionState } from '../types';
