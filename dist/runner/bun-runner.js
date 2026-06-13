@@ -29,7 +29,8 @@ export async function runAppLoadTest(config, mode, options = {}) {
             endpoints: config.publicEndpoints,
             concurrencyLevels: [...modeConfig.concurrencyLevels],
             durationSec: modeConfig.durationSec,
-            warmupRequests: modeConfig.warmupRequests
+            warmupRequests: modeConfig.warmupRequests,
+            repeat: modeConfig.repeat
         };
         const publicResults = await runLoadTest(publicConfig);
         startedAt = publicResults.startedAt;
@@ -49,7 +50,8 @@ export async function runAppLoadTest(config, mode, options = {}) {
             endpoints: config.publicEndpoints,
             concurrencyLevels: [...modeConfig.concurrencyLevels],
             durationSec: modeConfig.durationSec,
-            warmupRequests: modeConfig.warmupRequests
+            warmupRequests: modeConfig.warmupRequests,
+            repeat: modeConfig.repeat
         };
         const directResults = await runLoadTest(directConfig);
         for (const s of directResults.scenarios) {
@@ -99,7 +101,8 @@ export async function runAppLoadTest(config, mode, options = {}) {
                 endpoints: authedEndpoints,
                 concurrencyLevels: [...modeConfig.concurrencyLevels],
                 durationSec: modeConfig.durationSec,
-                warmupRequests: modeConfig.warmupRequests
+                warmupRequests: modeConfig.warmupRequests,
+                repeat: modeConfig.repeat
             };
             const authedResults = await runLoadTest(authedConfig);
             allScenarios.push(...authedResults.scenarios);

@@ -45,16 +45,19 @@ export const DEFAULT_MODES = {
     quick: {
         concurrencyLevels: [1, 10],
         durationSec: 5,
-        warmupRequests: 3
+        warmupRequests: 3,
+        repeat: 1
     },
     full: {
         concurrencyLevels: [10, 50, 100],
         durationSec: 10,
-        warmupRequests: 5
+        warmupRequests: 5,
+        repeat: 3
     },
     stress: {
         concurrencyLevels: [50, 100, 200, 500],
         durationSec: 15,
-        warmupRequests: 10
+        warmupRequests: 10,
+        repeat: 3
     }
 };

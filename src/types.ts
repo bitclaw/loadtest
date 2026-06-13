@@ -50,6 +50,13 @@ export type ModeConfig = {
   durationSec: number;
   /** Warm-up requests before timing begins */
   warmupRequests: number;
+  /**
+   * Times to repeat each scenario (default 1). When > 1, scenarios run N
+   * times and report median + coefficient of variation, exposing run-to-run
+   * variance instead of a single noisy point estimate. Optional so existing
+   * inline mode configs keep compiling.
+   */
+  repeat?: number;
 };
 
 /* ------------------------------------------------------------------

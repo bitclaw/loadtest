@@ -62,16 +62,19 @@ export declare const DEFAULT_MODES: {
         readonly concurrencyLevels: readonly [1, 10];
         readonly durationSec: 5;
         readonly warmupRequests: 3;
+        readonly repeat: 1;
     };
     readonly full: {
         readonly concurrencyLevels: readonly [10, 50, 100];
         readonly durationSec: 10;
         readonly warmupRequests: 5;
+        readonly repeat: 3;
     };
     readonly stress: {
         readonly concurrencyLevels: readonly [50, 100, 200, 500];
         readonly durationSec: 15;
         readonly warmupRequests: 10;
+        readonly repeat: 3;
     };
 };
 //# sourceMappingURL=defaults.d.ts.map
