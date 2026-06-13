@@ -101,6 +101,14 @@ export type AppLoadTestConfig = {
   };
   /** Pass/fail thresholds */
   thresholds: ThresholdConfig;
+  /**
+   * Pre-computed signed session cookies (one per user).
+   * When provided, bypasses createSessionPool and sets cookiePool on every
+   * authenticated endpoint, giving each concurrent worker its own session.
+   * Format: ["warpkit.session_token=<encodedSignedValue>", ...]
+   * Populate via a seed script and load from disk in loadtest.config.ts.
+   */
+  sessionCookies?: string[];
 };
 
 /* ------------------------------------------------------------------

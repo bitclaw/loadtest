@@ -111,22 +111,33 @@ export async function runAppLoadTest(
           `Set ${config.auth.emailEnvVar} and ${config.auth.passwordEnvVar} to include them.`
       );
     } else {
-      // Determine session pool size (1 per 20 max concurrent workers)
-      const maxConcurrency = Math.max(...modeConfig.concurrencyLevels);
-      const poolSize = Math.max(1, Math.ceil(maxConcurrency / 20));
+      let authedEndpoints: EndpointConfig[];
 
-      const sessions = await createSessionPool(baseUrl, config.auth, poolSize);
-
-      // Inject Cookie header into each authenticated endpoint
-      // Round-robin across session pool
-      const authedEndpoints: EndpointConfig[] =
-        config.authenticatedEndpoints.map((ep, i) => ({
+      if (config.sessionCookies && config.sessionCookies.length > 0) {
+        // Per-worker distribution: each concurrent worker gets a distinct cookie.
+        // cookiePool is threaded through EndpointConfig down to runScenario,
+        // where worker i picks cookiePool[i % cookiePool.length].
+        authedEndpoints = config.authenticatedEndpoints.map(ep => ({
+          ...ep,
+          cookiePool: config.sessionCookies
+        }));
+      } else {
+        // Existing path: authenticate a small pool via OTP, assign per endpoint.
+        const maxConcurrency = Math.max(...modeConfig.concurrencyLevels);
+        const poolSize = Math.max(1, Math.ceil(maxConcurrency / 20));
+        const sessions = await createSessionPool(
+          baseUrl,
+          config.auth,
+          poolSize
+        );
+        authedEndpoints = config.authenticatedEndpoints.map((ep, i) => ({
           ...ep,
           headers: {
             ...ep.headers,
             Cookie: sessions[i % sessions.length]!.cookies
           }
         }));
+      }
 
       const authedConfig: LoadTestConfig = {
         baseUrl,

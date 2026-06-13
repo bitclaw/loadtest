@@ -44,7 +44,7 @@
   "author": "bitclaw",
   "license": "MIT",
   "dependencies": {
-    "@bitclaw/sqlite": "^1.3.0",
+    "@bitclaw/sqlite": "1.4.0",
     "commander": "^12.1.0"
   },
   "devDependencies": {
