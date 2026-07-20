@@ -94,6 +94,88 @@ function mockFetchWithAuth(): void {
   }) as unknown as typeof fetch;
 }
 
+describe('runAppLoadTest — sessionCookies / sessionParams', () => {
+  test('given sessionCookies, when running authenticated endpoints, then sets cookiePool instead of authenticating a live session', async () => {
+    mockVerifyFetch();
+    process.env.LOADTEST_EMAIL = 'admin@test.local';
+    process.env.LOADTEST_PASSWORD = 'secret123';
+
+    const config: AppLoadTestConfig = {
+      ...SAMPLE_CONFIG_WITH_AUTH,
+      sessionCookies: ['session=user_a', 'session=user_b']
+    };
+
+    await runAppLoadTest(config, 'quick');
+
+    // Called twice: once for public, once for authenticated - no session-pool
+    // auth fetches beyond the initial verifyApp call.
+    const fetchMock = globalThis.fetch as unknown as ReturnType<typeof mock>;
+    expect(fetchMock.mock.calls).toHaveLength(1);
+
+    const authedConfig = mockRunLoadTest.mock.calls[1]![0] as {
+      endpoints: { cookiePool?: string[]; pathPool?: string[] }[];
+    };
+    for (const ep of authedConfig.endpoints) {
+      expect(ep.cookiePool).toEqual(['session=user_a', 'session=user_b']);
+      expect(ep.pathPool).toBeUndefined();
+    }
+  });
+
+  test('given sessionCookies and sessionParams, when an endpoint path has {token} placeholders, then pathPool is resolved per-session, index-correlated with cookiePool', async () => {
+    mockVerifyFetch();
+    process.env.LOADTEST_EMAIL = 'admin@test.local';
+    process.env.LOADTEST_PASSWORD = 'secret123';
+
+    const config: AppLoadTestConfig = {
+      ...SAMPLE_CONFIG_WITH_AUTH,
+      authenticatedEndpoints: [
+        { path: '/workspace/{workspaceId}/dashboard', label: 'Dashboard' },
+        { path: '/settings', label: 'Settings' } // no placeholder - untouched
+      ],
+      sessionCookies: ['session=user_a', 'session=user_b'],
+      sessionParams: [{ workspaceId: 'wsp_a' }, { workspaceId: 'wsp_b' }]
+    };
+
+    await runAppLoadTest(config, 'quick');
+
+    const authedConfig = mockRunLoadTest.mock.calls[1]![0] as {
+      endpoints: { path: string; cookiePool?: string[]; pathPool?: string[] }[];
+    };
+
+    const dashboard = authedConfig.endpoints.find(e =>
+      e.path.includes('dashboard')
+    )!;
+    expect(dashboard.pathPool).toEqual([
+      '/workspace/wsp_a/dashboard',
+      '/workspace/wsp_b/dashboard'
+    ]);
+
+    const settings = authedConfig.endpoints.find(e => e.path === '/settings')!;
+    // No {token} in the path - substitution is a no-op, still one entry per session.
+    expect(settings.pathPool).toEqual(['/settings', '/settings']);
+  });
+
+  test('given sessionCookies without sessionParams, when running, then no pathPool is set at all (unchanged behavior)', async () => {
+    mockVerifyFetch();
+    process.env.LOADTEST_EMAIL = 'admin@test.local';
+    process.env.LOADTEST_PASSWORD = 'secret123';
+
+    const config: AppLoadTestConfig = {
+      ...SAMPLE_CONFIG_WITH_AUTH,
+      sessionCookies: ['session=user_a']
+    };
+
+    await runAppLoadTest(config, 'quick');
+
+    const authedConfig = mockRunLoadTest.mock.calls[1]![0] as {
+      endpoints: { pathPool?: string[] }[];
+    };
+    for (const ep of authedConfig.endpoints) {
+      expect(ep.pathPool).toBeUndefined();
+    }
+  });
+});
+
 describe('runAppLoadTest', () => {
   test('given public-only config, when running, then calls runLoadTest with public endpoints', async () => {
     mockVerifyFetch();

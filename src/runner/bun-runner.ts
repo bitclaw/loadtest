@@ -117,10 +117,24 @@ export async function runAppLoadTest(
         // Per-worker distribution: each concurrent worker gets a distinct cookie.
         // cookiePool is threaded through EndpointConfig down to runScenario,
         // where worker i picks cookiePool[i % cookiePool.length].
-        authedEndpoints = config.authenticatedEndpoints.map(ep => ({
-          ...ep,
-          cookiePool: config.sessionCookies
-        }));
+        //
+        // When sessionParams is also set, each endpoint's `path` is treated
+        // as a `{token}` template and resolved per-session into a parallel
+        // pathPool - worker i then requests pathPool[i % pathPool.length],
+        // the same index that picks its cookie, so a session's cookie and
+        // its own URL always travel together.
+        authedEndpoints = config.authenticatedEndpoints.map(ep => {
+          const pathPool = config.sessionParams?.map(params =>
+            ep.path.replace(/\{(\w+)\}/g, (match, token: string) =>
+              Object.hasOwn(params, token) ? params[token]! : match
+            )
+          );
+          return {
+            ...ep,
+            cookiePool: config.sessionCookies,
+            ...(pathPool ? { pathPool } : {})
+          };
+        });
       } else {
         // Existing path: authenticate a small pool via OTP, assign per endpoint.
         const maxConcurrency = Math.max(...modeConfig.concurrencyLevels);

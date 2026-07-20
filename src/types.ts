@@ -109,6 +109,19 @@ export type AppLoadTestConfig = {
    * Populate via a seed script and load from disk in loadtest.config.ts.
    */
   sessionCookies?: string[];
+  /**
+   * Per-session path substitution values, index-correlated with
+   * sessionCookies (sessionParams[i] belongs to the same session as
+   * sessionCookies[i]). Use for multi-tenant apps where an authenticated
+   * endpoint's path is scoped per-session rather than flat - write the
+   * endpoint's `path` as a template with `{token}` placeholders (e.g.
+   * `/workspace/{workspaceId}/dashboard`), and each worker gets that
+   * template resolved against its own session's params, producing a
+   * genuinely distinct URL instead of every worker hitting the same one.
+   * Omit for apps where every authenticated endpoint is a flat path -
+   * behavior is then unchanged from a plain sessionCookies-only config.
+   */
+  sessionParams?: Record<string, string>[];
 };
 
 /* ------------------------------------------------------------------

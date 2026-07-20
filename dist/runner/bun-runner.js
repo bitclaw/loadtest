@@ -83,19 +83,39 @@ export async function runAppLoadTest(config, mode, options = {}) {
                 `Set ${config.auth.emailEnvVar} and ${config.auth.passwordEnvVar} to include them.`);
         }
         else {
-            // Determine session pool size (1 per 20 max concurrent workers)
-            const maxConcurrency = Math.max(...modeConfig.concurrencyLevels);
-            const poolSize = Math.max(1, Math.ceil(maxConcurrency / 20));
-            const sessions = await createSessionPool(baseUrl, config.auth, poolSize);
-            // Inject Cookie header into each authenticated endpoint
-            // Round-robin across session pool
-            const authedEndpoints = config.authenticatedEndpoints.map((ep, i) => ({
-                ...ep,
-                headers: {
-                    ...ep.headers,
-                    Cookie: sessions[i % sessions.length].cookies
-                }
-            }));
+            let authedEndpoints;
+            if (config.sessionCookies && config.sessionCookies.length > 0) {
+                // Per-worker distribution: each concurrent worker gets a distinct cookie.
+                // cookiePool is threaded through EndpointConfig down to runScenario,
+                // where worker i picks cookiePool[i % cookiePool.length].
+                //
+                // When sessionParams is also set, each endpoint's `path` is treated
+                // as a `{token}` template and resolved per-session into a parallel
+                // pathPool - worker i then requests pathPool[i % pathPool.length],
+                // the same index that picks its cookie, so a session's cookie and
+                // its own URL always travel together.
+                authedEndpoints = config.authenticatedEndpoints.map(ep => {
+                    const pathPool = config.sessionParams?.map(params => ep.path.replace(/\{(\w+)\}/g, (match, token) => Object.hasOwn(params, token) ? params[token] : match));
+                    return {
+                        ...ep,
+                        cookiePool: config.sessionCookies,
+                        ...(pathPool ? { pathPool } : {})
+                    };
+                });
+            }
+            else {
+                // Existing path: authenticate a small pool via OTP, assign per endpoint.
+                const maxConcurrency = Math.max(...modeConfig.concurrencyLevels);
+                const poolSize = Math.max(1, Math.ceil(maxConcurrency / 20));
+                const sessions = await createSessionPool(baseUrl, config.auth, poolSize);
+                authedEndpoints = config.authenticatedEndpoints.map((ep, i) => ({
+                    ...ep,
+                    headers: {
+                        ...ep.headers,
+                        Cookie: sessions[i % sessions.length].cookies
+                    }
+                }));
+            }
             const authedConfig = {
                 baseUrl,
                 endpoints: authedEndpoints,
