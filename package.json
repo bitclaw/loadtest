@@ -1,6 +1,6 @@
 {
   "name": "@bitclaw/loadtest",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Load testing framework for SQLite-backed web applications",
   "files": [
     "dist",
