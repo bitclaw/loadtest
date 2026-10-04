@@ -13,10 +13,15 @@ import { createSessionPool } from '../auth/session';
  * 2. Authenticates session pool (if auth configured)
  * 3. Tests authenticated endpoints with session cookies
  * 4. Merges results
+ *
+ * `options.signal` stops the run: no new phase starts, in-flight
+ * requests are cancelled, and the promise rejects with `signal.reason`.
  */
 export async function runAppLoadTest(config, mode, options = {}) {
     const modeConfig = config.modes[mode];
     const baseUrl = options.baseUrl ?? config.baseUrl;
+    const { signal } = options;
+    signal?.throwIfAborted();
     // Verify the app is reachable
     await verifyApp(baseUrl, config);
     const directUrl = config.directUrl;
@@ -30,7 +35,8 @@ export async function runAppLoadTest(config, mode, options = {}) {
             concurrencyLevels: [...modeConfig.concurrencyLevels],
             durationSec: modeConfig.durationSec,
             warmupRequests: modeConfig.warmupRequests,
-            repeat: modeConfig.repeat
+            repeat: modeConfig.repeat,
+            signal
         };
         const publicResults = await runLoadTest(publicConfig);
         startedAt = publicResults.startedAt;
@@ -44,6 +50,7 @@ export async function runAppLoadTest(config, mode, options = {}) {
     }
     // 2. Direct origin pass - run public endpoints against directUrl and interleave
     if (directUrl && config.publicEndpoints.length > 0) {
+        signal?.throwIfAborted();
         await verifyApp(directUrl, config);
         const directConfig = {
             baseUrl: directUrl,
@@ -51,7 +58,8 @@ export async function runAppLoadTest(config, mode, options = {}) {
             concurrencyLevels: [...modeConfig.concurrencyLevels],
             durationSec: modeConfig.durationSec,
             warmupRequests: modeConfig.warmupRequests,
-            repeat: modeConfig.repeat
+            repeat: modeConfig.repeat,
+            signal
         };
         const directResults = await runLoadTest(directConfig);
         for (const s of directResults.scenarios) {
@@ -107,6 +115,7 @@ export async function runAppLoadTest(config, mode, options = {}) {
                 // Existing path: authenticate a small pool via OTP, assign per endpoint.
                 const maxConcurrency = Math.max(...modeConfig.concurrencyLevels);
                 const poolSize = Math.max(1, Math.ceil(maxConcurrency / 20));
+                signal?.throwIfAborted();
                 const sessions = await createSessionPool(baseUrl, config.auth, poolSize);
                 authedEndpoints = config.authenticatedEndpoints.map((ep, i) => ({
                     ...ep,
@@ -122,7 +131,8 @@ export async function runAppLoadTest(config, mode, options = {}) {
                 concurrencyLevels: [...modeConfig.concurrencyLevels],
                 durationSec: modeConfig.durationSec,
                 warmupRequests: modeConfig.warmupRequests,
-                repeat: modeConfig.repeat
+                repeat: modeConfig.repeat,
+                signal
             };
             const authedResults = await runLoadTest(authedConfig);
             allScenarios.push(...authedResults.scenarios);
@@ -133,6 +143,7 @@ export async function runAppLoadTest(config, mode, options = {}) {
         !config.auth) {
         console.warn(`Skipping ${config.authenticatedEndpoints.length} authenticated endpoint(s) - no auth config provided`);
     }
+    signal?.throwIfAborted();
     return {
         baseUrl,
         startedAt,

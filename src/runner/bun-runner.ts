@@ -21,14 +21,19 @@ import type { AppLoadTestConfig, TestMode } from '../types';
  * 2. Authenticates session pool (if auth configured)
  * 3. Tests authenticated endpoints with session cookies
  * 4. Merges results
+ *
+ * `options.signal` stops the run: no new phase starts, in-flight
+ * requests are cancelled, and the promise rejects with `signal.reason`.
  */
 export async function runAppLoadTest(
   config: AppLoadTestConfig,
   mode: TestMode,
-  options: { publicOnly?: boolean; baseUrl?: string } = {}
+  options: { publicOnly?: boolean; baseUrl?: string; signal?: AbortSignal } = {}
 ): Promise<LoadTestResults> {
   const modeConfig = config.modes[mode];
   const baseUrl = options.baseUrl ?? config.baseUrl;
+  const { signal } = options;
+  signal?.throwIfAborted();
 
   // Verify the app is reachable
   await verifyApp(baseUrl, config);
@@ -45,7 +50,8 @@ export async function runAppLoadTest(
       concurrencyLevels: [...modeConfig.concurrencyLevels],
       durationSec: modeConfig.durationSec,
       warmupRequests: modeConfig.warmupRequests,
-      repeat: modeConfig.repeat
+      repeat: modeConfig.repeat,
+      signal
     };
 
     const publicResults = await runLoadTest(publicConfig);
@@ -62,6 +68,7 @@ export async function runAppLoadTest(
 
   // 2. Direct origin pass - run public endpoints against directUrl and interleave
   if (directUrl && config.publicEndpoints.length > 0) {
+    signal?.throwIfAborted();
     await verifyApp(directUrl, config);
 
     const directConfig: LoadTestConfig = {
@@ -70,7 +77,8 @@ export async function runAppLoadTest(
       concurrencyLevels: [...modeConfig.concurrencyLevels],
       durationSec: modeConfig.durationSec,
       warmupRequests: modeConfig.warmupRequests,
-      repeat: modeConfig.repeat
+      repeat: modeConfig.repeat,
+      signal
     };
 
     const directResults = await runLoadTest(directConfig);
@@ -139,6 +147,7 @@ export async function runAppLoadTest(
         // Existing path: authenticate a small pool via OTP, assign per endpoint.
         const maxConcurrency = Math.max(...modeConfig.concurrencyLevels);
         const poolSize = Math.max(1, Math.ceil(maxConcurrency / 20));
+        signal?.throwIfAborted();
         const sessions = await createSessionPool(
           baseUrl,
           config.auth,
@@ -159,7 +168,8 @@ export async function runAppLoadTest(
         concurrencyLevels: [...modeConfig.concurrencyLevels],
         durationSec: modeConfig.durationSec,
         warmupRequests: modeConfig.warmupRequests,
-        repeat: modeConfig.repeat
+        repeat: modeConfig.repeat,
+        signal
       };
 
       const authedResults = await runLoadTest(authedConfig);
@@ -175,6 +185,7 @@ export async function runAppLoadTest(
     );
   }
 
+  signal?.throwIfAborted();
   return {
     baseUrl,
     startedAt,

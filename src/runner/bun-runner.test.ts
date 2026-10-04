@@ -353,4 +353,58 @@ describe('runAppLoadTest', () => {
       expect(ep.headers?.Cookie).toMatch(/^runmist_session=session_\d+$/);
     }
   });
+
+  test('given a signal, when running, then passes it to every runLoadTest call', async () => {
+    mockFetchWithAuth();
+    process.env.LOADTEST_EMAIL = 'admin@test.local';
+    process.env.LOADTEST_PASSWORD = 'secret123';
+    const controller = new AbortController();
+
+    await runAppLoadTest(SAMPLE_CONFIG_WITH_AUTH, 'quick', {
+      signal: controller.signal
+    });
+
+    expect(mockRunLoadTest).toHaveBeenCalledTimes(2);
+    for (const call of mockRunLoadTest.mock.calls) {
+      expect((call[0] as { signal?: AbortSignal }).signal).toBe(
+        controller.signal
+      );
+    }
+  });
+
+  test('given a signal aborted after the public phase, when running, then rejects before authenticating', async () => {
+    mockFetchWithAuth();
+    process.env.LOADTEST_EMAIL = 'admin@test.local';
+    process.env.LOADTEST_PASSWORD = 'secret123';
+    const controller = new AbortController();
+    mockRunLoadTest.mockImplementationOnce(() => {
+      controller.abort(new Error('job timed out'));
+      return Promise.resolve({ ...PASSING_RESULTS, scenarios: [] });
+    });
+
+    await expect(
+      runAppLoadTest(SAMPLE_CONFIG_WITH_AUTH, 'quick', {
+        signal: controller.signal
+      })
+    ).rejects.toThrow('job timed out');
+
+    expect(mockRunLoadTest).toHaveBeenCalledTimes(1);
+    // Only verifyApp, no session pool request.
+    const fetchMock = globalThis.fetch as unknown as ReturnType<typeof mock>;
+    expect(fetchMock.mock.calls).toHaveLength(1);
+  });
+
+  test('given an already aborted signal, when running, then rejects without any request', async () => {
+    mockVerifyFetch();
+
+    await expect(
+      runAppLoadTest(SAMPLE_CONFIG_PUBLIC_ONLY, 'quick', {
+        signal: AbortSignal.abort()
+      })
+    ).rejects.toThrow();
+
+    expect(mockRunLoadTest).not.toHaveBeenCalled();
+    const fetchMock = globalThis.fetch as unknown as ReturnType<typeof mock>;
+    expect(fetchMock.mock.calls).toHaveLength(0);
+  });
 });

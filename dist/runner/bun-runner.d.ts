@@ -13,9 +13,13 @@ import type { AppLoadTestConfig, TestMode } from '../types';
  * 2. Authenticates session pool (if auth configured)
  * 3. Tests authenticated endpoints with session cookies
  * 4. Merges results
+ *
+ * `options.signal` stops the run: no new phase starts, in-flight
+ * requests are cancelled, and the promise rejects with `signal.reason`.
  */
 export declare function runAppLoadTest(config: AppLoadTestConfig, mode: TestMode, options?: {
     publicOnly?: boolean;
     baseUrl?: string;
+    signal?: AbortSignal;
 }): Promise<LoadTestResults>;
 //# sourceMappingURL=bun-runner.d.ts.map
